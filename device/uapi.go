@@ -124,6 +124,12 @@ func (device *Device) IpcGetOperation(w io.Writer) error {
 				sendf("allowed_ip=%s", prefix.String())
 				return true
 			})
+
+			// Serialize program names
+			programs := peer.GetPrograms()
+			for _, program := range programs {
+				sendf("allowed_program=%s", program)
+			}
 		}
 	}()
 
@@ -390,6 +396,37 @@ func (device *Device) handlePeerLine(peer *ipcSetPeer, key, value string) error 
 			device.allowedips.Insert(prefix, peer.Peer)
 		} else {
 			device.allowedips.Remove(prefix, peer.Peer)
+		}
+
+	case "replace_allowed_programs":
+		device.log.Verbosef("%v - UAPI: Removing all allowed programs", peer.Peer)
+		if value != "true" {
+			return ipcErrorf(ipc.IpcErrorInvalid, "failed to replace allowed programs, invalid value: %v", value)
+		}
+		if peer.dummy {
+			return nil
+		}
+		peer.ClearPrograms()
+
+	case "allowed_program":
+		add := true
+		verb := "Adding"
+		if len(value) > 0 && value[0] == '-' {
+			add = false
+			verb = "Removing"
+			value = value[1:]
+		}
+		device.log.Verbosef("%v - UAPI: %s allowed program", peer.Peer, verb)
+		if value == "" {
+			return ipcErrorf(ipc.IpcErrorInvalid, "program name cannot be empty")
+		}
+		if peer.dummy {
+			return nil
+		}
+		if add {
+			peer.AddProgram(value)
+		} else {
+			peer.RemoveProgram(value)
 		}
 
 	case "protocol_version":
