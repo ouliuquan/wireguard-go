@@ -304,7 +304,7 @@ func (peer *Peer) markEndpointSrcForClearing() {
 func (peer *Peer) AddProgram(name string) {
 	peer.programs.Lock()
 	defer peer.programs.Unlock()
-	
+
 	// Check if program already exists
 	for _, existing := range peer.programs.names {
 		if existing == name {
@@ -318,7 +318,7 @@ func (peer *Peer) AddProgram(name string) {
 func (peer *Peer) RemoveProgram(name string) {
 	peer.programs.Lock()
 	defer peer.programs.Unlock()
-	
+
 	for i, existing := range peer.programs.names {
 		if existing == name {
 			peer.programs.names = append(peer.programs.names[:i], peer.programs.names[i+1:]...)
@@ -338,11 +338,11 @@ func (peer *Peer) ClearPrograms() {
 func (peer *Peer) GetPrograms() []string {
 	peer.programs.RLock()
 	defer peer.programs.RUnlock()
-	
+
 	if len(peer.programs.names) == 0 {
 		return nil
 	}
-	
+
 	result := make([]string, len(peer.programs.names))
 	copy(result, peer.programs.names)
 	return result
